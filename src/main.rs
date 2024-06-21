@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use std::process::{self, Command};
 
 fn main() {
-    let builtins = ["echo", "exit", "type"];
+    let builtins = ["echo", "exit", "type", "pwd"];
 
     loop {
         print_prompt();
