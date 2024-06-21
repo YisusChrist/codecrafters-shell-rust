@@ -2,6 +2,7 @@
 use std::env;
 use std::fs;
 use std::io::{self, Write};
+use std::path::PathBuf;
 use std::process::{self, Command};
 
 fn main() {
@@ -23,16 +24,14 @@ fn main() {
             process::exit(0);
         }
 
-        if let Some(builtin) = handle_builtin(cmd_name, args, &builtins) {
-            // If command is cd don't print anything
-            if cmd_name == "cd" && builtin.is_empty() {
-                continue;
-            }
-            println!("{}", builtin);
-        } else {
-            match find_in_path(cmd_name) {
-                Some(path) => run_external_command(&path, args),
-                None => println!("{}: command not found", cmd_name),
+        match handle_builtin(cmd_name, args, &builtins) {
+            Some(output) => println!("{}", output),
+            None => {
+                if let Some(path) = find_in_path(cmd_name) {
+                    run_external_command(&path, args);
+                } else {
+                    println!("{}: command not found", cmd_name);
+                }
             }
         }
     }
@@ -79,10 +78,7 @@ fn handle_builtin(cmd_name: &str, args: &[&str], builtins: &[&str]) -> Option<St
                 Some("cd: missing argument".to_string())
             } else {
                 let new_dir = args[0];
-                match env::set_current_dir(new_dir) {
-                    Ok(_) => Some("".to_string()),
-                    Err(_) => Some(format!("cd: {}: No such file or directory", new_dir)),
-                }
+                change_directory(new_dir)
             }
         }
         _ => None,
@@ -108,4 +104,23 @@ fn run_external_command(path: &str, args: &[&str]) {
         .expect("failed to execute process");
 
     child.wait().expect("failed to wait on child");
+}
+
+fn change_directory(new_dir: &str) -> Option<String> {
+    let current_dir = env::current_dir().ok()?;
+    let mut new_path = PathBuf::from(&current_dir);
+
+    if new_dir.starts_with('/') {
+        // Absolute path
+        new_path = PathBuf::from(new_dir);
+    } else {
+        // Relative path
+        new_path.push(new_dir);
+    }
+
+    if let Err(_) = env::set_current_dir(&new_path) {
+        return Some(format!("cd: {}: No such file or directory", new_dir));
+    }
+
+    None
 }
