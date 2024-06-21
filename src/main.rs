@@ -25,7 +25,13 @@ fn main() {
         }
 
         match handle_builtin(cmd_name, args, &builtins) {
-            Some(output) => println!("{}", output),
+            Some(output) => {
+                // If command is cd don't print anything
+                if cmd_name == "cd" && output.is_empty() {
+                    continue;
+                }
+                println!("{}", output)
+            }
             None => {
                 if let Some(path) = find_in_path(cmd_name) {
                     run_external_command(&path, args);
