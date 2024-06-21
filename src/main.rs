@@ -65,7 +65,7 @@ fn handle_builtin(cmd_name: &str, args: &[&str], builtins: &[&str]) -> Option<St
                     }
                 }
             }
-        },
+        }
         "pwd" => match env::current_dir() {
             Ok(path) => Some(path.display().to_string()),
             Err(_) => Some("pwd: could not retrieve current directory".to_string()),
@@ -73,15 +73,14 @@ fn handle_builtin(cmd_name: &str, args: &[&str], builtins: &[&str]) -> Option<St
         "cd" => {
             if args.is_empty() {
                 Some("cd: missing argument".to_string())
-            }
-            else {
+            } else {
                 let new_dir = args[0];
                 match env::set_current_dir(new_dir) {
                     Ok(_) => None,
                     Err(_) => Some(format!("cd: {}: No such file or directory", new_dir)),
                 }
             }
-        },
+        }
         _ => None,
     }
 }
