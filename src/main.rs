@@ -2,50 +2,71 @@
 use std::env;
 use std::fs;
 use std::io::{self, Write};
-use std::process;
+use std::process::{self, Command};
 
 fn main() {
-    // List of shell builtins
     let builtins = ["echo", "exit", "type"];
 
     loop {
-        // Print the prompt
-        print!("$ ");
-        io::stdout().flush().unwrap();
+        print_prompt();
 
-        // Wait for user input
-        let stdin = io::stdin();
-        let mut input = String::new();
-        if stdin.read_line(&mut input).is_err() {
-            break; // Exit the loop if there's an error reading input
+        let command = read_command();
+        if command.is_empty() {
+            continue;
         }
 
-        // Trim the input to remove any trailing newlines or spaces
-        let command = input.trim();
+        let parts: Vec<&str> = command.split_whitespace().collect();
+        let cmd_name = parts[0];
+        let args = &parts[1..];
 
-        // Check for the exit command
-        if command == "exit 0" {
+        if cmd_name == "exit" && args == ["0"] {
             process::exit(0);
         }
 
-        // Check for the echo command
-        if command.starts_with("echo ") {
-            let output = &command[5..]; // Get the part after "echo "
-            println!("{}", output);
-        } else if command.starts_with("type ") {
-            let cmd_to_check = &command[5..]; // Get the part after "type "
-            if builtins.contains(&cmd_to_check) {
-                println!("{} is a shell builtin", cmd_to_check);
+        if let Some(builtin) = handle_builtin(cmd_name, args, &builtins) {
+            println!("{}", builtin);
+        } else {
+            match find_in_path(cmd_name) {
+                Some(path) => run_external_command(&path, args),
+                None => println!("{}: command not found", cmd_name),
+            }
+        }
+    }
+}
+
+fn print_prompt() {
+    print!("$ ");
+    io::stdout().flush().unwrap();
+}
+
+fn read_command() -> String {
+    let mut input = String::new();
+    if io::stdin().read_line(&mut input).is_ok() {
+        input.trim().to_string()
+    } else {
+        String::new()
+    }
+}
+
+fn handle_builtin(cmd_name: &str, args: &[&str], builtins: &[&str]) -> Option<String> {
+    match cmd_name {
+        "echo" => Some(args.join(" ")),
+        "type" => {
+            if args.is_empty() {
+                Some("type: missing argument".to_string())
             } else {
-                match find_in_path(cmd_to_check) {
-                    Some(path) => println!("{} is {}", cmd_to_check, path),
-                    None => println!("{}: not found", cmd_to_check),
+                let cmd_to_check = args[0];
+                if builtins.contains(&cmd_to_check) {
+                    Some(format!("{} is a shell builtin", cmd_to_check))
+                } else {
+                    match find_in_path(cmd_to_check) {
+                        Some(path) => Some(format!("{} is {}", cmd_to_check, path)),
+                        None => Some(format!("{}: not found", cmd_to_check)),
+                    }
                 }
             }
-        } else if !command.is_empty() {
-            // Print the error message for unrecognized command
-            println!("{}: command not found", command);
         }
+        _ => None,
     }
 }
 
@@ -59,4 +80,13 @@ fn find_in_path(command: &str) -> Option<String> {
         }
     }
     None
+}
+
+fn run_external_command(path: &str, args: &[&str]) {
+    let mut child = Command::new(path)
+        .args(args)
+        .spawn()
+        .expect("failed to execute process");
+
+    child.wait().expect("failed to wait on child");
 }
