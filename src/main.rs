@@ -65,7 +65,11 @@ fn handle_builtin(cmd_name: &str, args: &[&str], builtins: &[&str]) -> Option<St
                     }
                 }
             }
-        }
+        },
+        "pwd" => match env::current_dir() {
+            Ok(path) => Some(path.display().to_string()),
+            Err(_) => Some("pwd: could not retrieve current directory".to_string()),
+        },
         _ => None,
     }
 }
