@@ -28,7 +28,13 @@ fn main() {
         } else {
             match find_in_path(cmd_name) {
                 Some(path) => run_external_command(&path, args),
-                None => println!("{}: command not found", cmd_name),
+                None => {
+                    if let Some(path) = find_in_path(cmd_name) {
+                        run_external_command(&path, args);
+                    } else {
+                        println!("{}: command not found", cmd_name);
+                    }
+                }
             }
         }
     }
