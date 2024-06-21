@@ -24,8 +24,12 @@ fn main() {
             process::exit(0);
         }
 
-        // Print the error message for unrecognized command
-        if !command.is_empty() {
+        // Check for the echo command
+        if command.starts_with("echo ") {
+            let output = &command[5..]; // Get the part after "echo "
+            println!("{}", output);
+        } else if !command.is_empty() {
+            // Print the error message for unrecognized command
             println!("{}: command not found", command);
         }
     }
