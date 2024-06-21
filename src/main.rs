@@ -28,13 +28,7 @@ fn main() {
         } else {
             match find_in_path(cmd_name) {
                 Some(path) => run_external_command(&path, args),
-                None => {
-                    if let Some(path) = find_in_path(cmd_name) {
-                        run_external_command(&path, args);
-                    } else {
-                        println!("{}: command not found", cmd_name);
-                    }
-                }
+                None => println!("{}: command not found", cmd_name),
             }
         }
     }
@@ -82,7 +76,7 @@ fn handle_builtin(cmd_name: &str, args: &[&str], builtins: &[&str]) -> Option<St
             } else {
                 let new_dir = args[0];
                 match env::set_current_dir(new_dir) {
-                    Ok(_) => None,
+                    Ok(_) => Some("".to_string()),
                     Err(_) => Some(format!("cd: {}: No such file or directory", new_dir)),
                 }
             }
