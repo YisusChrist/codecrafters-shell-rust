@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use std::process::{self, Command};
 
 fn main() {
-    let builtins = ["echo", "exit", "type", "pwd", "cd"];
+    let builtins: [&str; 5] = ["echo", "exit", "type", "pwd", "cd"];
 
     loop {
         print_prompt();
