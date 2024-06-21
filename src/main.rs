@@ -24,6 +24,10 @@ fn main() {
         }
 
         if let Some(builtin) = handle_builtin(cmd_name, args, &builtins) {
+            // If command is cd don't print anything
+            if cmd_name == "cd" {
+                continue;
+            }
             println!("{}", builtin);
         } else {
             match find_in_path(cmd_name) {
