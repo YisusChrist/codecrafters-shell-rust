@@ -25,7 +25,7 @@ fn main() {
 
         if let Some(builtin) = handle_builtin(cmd_name, args, &builtins) {
             // If command is cd don't print anything
-            if cmd_name == "cd" {
+            if cmd_name == "cd" && builtin.is_empty() {
                 continue;
             }
             println!("{}", builtin);
