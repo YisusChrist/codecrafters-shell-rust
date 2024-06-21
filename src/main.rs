@@ -128,5 +128,5 @@ fn change_directory(new_dir: &str) -> Option<String> {
         return Some(format!("cd: {}: No such file or directory", new_dir));
     }
 
-    None
+    Some("".to_string())
 }
