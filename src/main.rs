@@ -116,7 +116,15 @@ fn change_directory(new_dir: &str) -> Option<String> {
     let current_dir = env::current_dir().ok()?;
     let mut new_path = PathBuf::from(&current_dir);
 
-    if new_dir.starts_with('/') {
+    if new_dir.starts_with('~') {
+        // Home directory
+        if let Some(home_dir) = dirs::home_dir() {
+            new_path = home_dir;
+            new_path.push(&new_dir[1..]); // Skip '~'
+        } else {
+            return Some("cd: could not determine home directory".to_string());
+        }
+    } else if new_dir.starts_with('/') {
         // Absolute path
         new_path = PathBuf::from(new_dir);
     } else {
