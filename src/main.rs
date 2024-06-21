@@ -1,5 +1,7 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
+use std::process;
+
 
 fn main() {
     loop {
@@ -16,6 +18,11 @@ fn main() {
 
         // Trim the input to remove any trailing newlines or spaces
         let command = input.trim();
+
+        // Check for the exit command
+        if command == "exit 0" {
+            process::exit(0);
+        }
 
         // Print the error message for unrecognized command
         if !command.is_empty() {
