@@ -1,7 +1,8 @@
 #[allow(unused_imports)]
+use std::env;
+use std::fs;
 use std::io::{self, Write};
 use std::process;
-
 
 fn main() {
     // List of shell builtins
@@ -36,11 +37,26 @@ fn main() {
             if builtins.contains(&cmd_to_check) {
                 println!("{} is a shell builtin", cmd_to_check);
             } else {
-                println!("{}: not found", cmd_to_check);
+                match find_in_path(cmd_to_check) {
+                    Some(path) => println!("{} is {}", cmd_to_check, path),
+                    None => println!("{}: not found", cmd_to_check),
+                }
             }
         } else if !command.is_empty() {
             // Print the error message for unrecognized command
             println!("{}: command not found", command);
         }
     }
+}
+
+fn find_in_path(command: &str) -> Option<String> {
+    if let Ok(path_var) = env::var("PATH") {
+        for path in path_var.split(':') {
+            let full_path = format!("{}/{}", path, command);
+            if fs::metadata(&full_path).is_ok() {
+                return Some(full_path);
+            }
+        }
+    }
+    None
 }
